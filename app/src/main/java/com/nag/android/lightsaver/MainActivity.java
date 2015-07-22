@@ -8,12 +8,14 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 
 public class MainActivity extends Activity {
-    private final String PARAM_BRIGHTNESS = "brightness";
-    private final int MAX_BRIGHTNESS = 255;
+    final static String PARAM_BRIGHTNESS = "brightness";
+    private static final int MAX_BRIGHTNESS = 255;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,8 +24,10 @@ public class MainActivity extends Activity {
         int brightness;
         if(getIntent().hasExtra(PARAM_BRIGHTNESS)) {
             brightness = getIntent().getIntExtra(PARAM_BRIGHTNESS, -1);
+            Log.d("H:","H:brightness="+brightness);
         }else{
             brightness = Integer.valueOf(Settings.System.getString(this.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS));
+            Log.d("H:","H:register"+brightness);
             if(brightness<MAX_BRIGHTNESS) {
                 setBroadcastReceiver(brightness);
                 brightness = MAX_BRIGHTNESS;
@@ -42,15 +46,7 @@ public class MainActivity extends Activity {
     }
 
     void setBroadcastReceiver(final int brightness) {
-        final BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                getApplicationContext().unregisterReceiver(this);
-                Intent i = new Intent(context, MainActivity.class);
-                i.putExtra(PARAM_BRIGHTNESS, brightness);
-                startActivity(i);
-            }
-        };
+        BroadcastReceiver receiver = new ResetReceiver(brightness);
         getApplicationContext().registerReceiver(receiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
         getApplicationContext().registerReceiver(receiver, new IntentFilter(Intent.ACTION_SHUTDOWN));
     }
